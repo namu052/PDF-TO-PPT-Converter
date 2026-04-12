@@ -9,6 +9,13 @@ class ApiClient {
         return this._fetch(`/api/status/${jobId}`);
     }
 
+    static async getVisionStatus() {
+        return this._fetch(`/api/vision-status?ts=${Date.now()}`, {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+        });
+    }
+
     static async getSession(jobId) {
         return this._fetch(`/api/session/${jobId}`);
     }

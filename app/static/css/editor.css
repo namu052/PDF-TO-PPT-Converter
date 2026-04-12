@@ -33,6 +33,12 @@ html, body {
     gap: 8px;
 }
 
+.vision-status-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .brand {
     font-weight: 700;
     letter-spacing: 0.02em;
@@ -45,6 +51,35 @@ html, body {
     color: #1565c0;
     font-size: 12px;
     font-weight: 600;
+}
+
+.vision-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eef2f6;
+    color: #425466;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.vision-badge[data-state="pending"] {
+    background: #edf6ff;
+    color: #1565c0;
+}
+
+.vision-badge[data-state="ok"] {
+    background: #e8f7ec;
+    color: #1a7f49;
+}
+
+.vision-badge[data-state="warn"] {
+    background: #fff4db;
+    color: #8c4b00;
+}
+
+.vision-badge[data-state="error"] {
+    background: #fde2e2;
+    color: #b42318;
 }
 
 .tool-btn {

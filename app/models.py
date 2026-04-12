@@ -263,6 +263,29 @@ class JobStatus(str, Enum):
     FAILED = "failed"
 
 
+class VisionServiceStatus(str, Enum):
+    OK = "ok"
+    MISSING_API_KEY = "missing_api_key"
+    AUTH_FAILED = "auth_failed"
+    BILLING_BLOCKED = "billing_blocked"
+    RATE_LIMITED = "rate_limited"
+    NETWORK_ERROR = "network_error"
+    UNKNOWN_ERROR = "unknown_error"
+
+
+class VisionStatusSnapshot(BaseModel):
+    provider: Literal["anthropic"] = "anthropic"
+    model: str = ""
+    configured: bool = False
+    can_analyze: bool = False
+    status: VisionServiceStatus = VisionServiceStatus.UNKNOWN_ERROR
+    status_code: int | None = None
+    message: str = ""
+    detail: str | None = None
+    checked_at: datetime = Field(default_factory=datetime.utcnow)
+    live_check: bool = True
+
+
 class JobSession(BaseModel):
     job_id: str
     status: JobStatus = JobStatus.UPLOADING
@@ -279,4 +302,3 @@ class JobSession(BaseModel):
 
 class Job(JobSession):
     """Legacy alias for older imports."""
-

@@ -3,12 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 from pydantic import ConfigDict, Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, PydanticBaseSettingsSource
 
 
 class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="", repr=False)
-    claude_model: str = "claude-sonnet-4-20250514"
+    claude_model: str = "claude-haiku-4-5"
     claude_max_tokens: int = 8192
 
     host: str = "0.0.0.0"
@@ -34,6 +34,20 @@ class Settings(BaseSettings):
     default_slide_height: float = 7.5
 
     model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        # This app is developed locally around a repo-scoped `.env`.
+        # Prefer it over inherited shell/system variables so stale keys do not
+        # silently override the project configuration.
+        return init_settings, dotenv_settings, env_settings, file_secret_settings
 
 
 settings = Settings()

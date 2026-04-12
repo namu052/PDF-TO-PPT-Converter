@@ -4,6 +4,8 @@ import io
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
+import anthropic
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
@@ -25,6 +27,8 @@ from app.models import (
     SlideWorkflowStatus,
     TextParagraph,
     TextRun,
+    VisionServiceStatus,
+    VisionStatusSnapshot,
 )
 from app.session_store import (
     load_revision,
@@ -143,6 +147,30 @@ def test_status_returns_snapshot_for_existing_job(client):
     assert response.json()["current_slide"] == 1
 
 
+def test_vision_status_route_returns_probe_snapshot(client):
+    snapshot = VisionStatusSnapshot(
+        model="claude-haiku-4-5",
+        configured=True,
+        can_analyze=False,
+        status=VisionServiceStatus.BILLING_BLOCKED,
+        status_code=402,
+        message="Anthropic billing is blocking Claude Vision requests.",
+        detail="Your credit balance is too low to access the Anthropic API.",
+    )
+
+    with patch("app.routers.diagnostics.probe_vision_status", new=AsyncMock(return_value=snapshot)):
+        response = client.get("/api/vision-status")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "billing_blocked"
+    assert body["status_code"] == 402
+    assert body["can_analyze"] is False
+    assert body["provider"] == "anthropic"
+    assert response.headers["cache-control"] == "no-store, max-age=0"
+    assert response.headers["pragma"] == "no-cache"
+
+
 def test_get_session_returns_slide_summaries(client):
     job = _create_slide_job(total_slides=2)
 
@@ -219,6 +247,36 @@ def test_analyze_route_returns_revision_id(client):
     assert response.status_code == 200
     assert response.json() == {"revision_id": "rev-1", "status": "editing_review"}
     assert get_job(job.job_id).status == JobStatus.EDITING_REVIEW
+
+
+def test_analyze_route_surfaces_anthropic_billing_error(client):
+    job = _create_slide_job()
+    error = anthropic.APIStatusError(
+        "billing failed",
+        response=httpx.Response(
+            402,
+            request=httpx.Request("POST", "https://api.anthropic.com/v1/messages"),
+        ),
+        body={
+            "error": {
+                "message": (
+                    "Your credit balance is too low to access the Anthropic API. "
+                    "Please go to Plans & Billing to upgrade or purchase credits."
+                )
+            }
+        },
+    )
+
+    with patch("app.routers.analysis.run_guided_analysis", new=AsyncMock(side_effect=error)):
+        response = client.post(
+            f"/api/analyze/{job.job_id}/1",
+            json={"guide_ids": [], "scope": "slide"},
+        )
+
+    assert response.status_code == 502
+    assert "Your credit balance is too low" in response.json()["detail"]
+    assert get_job(job.job_id).status == JobStatus.EDITING_GUIDANCE
+    assert "Your credit balance is too low" in get_job(job.job_id).error
 
 
 def test_get_analysis_returns_saved_revision(client):

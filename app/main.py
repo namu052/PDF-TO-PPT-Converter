@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.job_manager import cleanup_expired_jobs
-from app.routers import analysis, editor_api, generate, ocr, upload
+from app.routers import analysis, diagnostics, editor_api, generate, ocr, upload
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +54,7 @@ app.add_middleware(
 app.include_router(upload.router, prefix="/api")
 app.include_router(editor_api.router, prefix="/api")
 app.include_router(analysis.router, prefix="/api")
+app.include_router(diagnostics.router, prefix="/api")
 app.include_router(ocr.router, prefix="/api")
 app.include_router(generate.router, prefix="/api")
 

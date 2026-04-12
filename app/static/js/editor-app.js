@@ -2,6 +2,7 @@ const state = {
     jobId: null,
     session: null,
     slide: null,
+    visionStatus: null,
     currentSlideIndex: 0,
     currentTool: "select",
     selection: null,
@@ -12,6 +13,7 @@ let renderer;
 let tools;
 let panel;
 let navigatorView;
+let visionStatusTimer = null;
 
 
 async function initEditor() {
@@ -51,10 +53,13 @@ async function initEditor() {
     bindToolbar();
     bindCanvas();
     bindShortcuts();
+    bindLifecycle();
 
     try {
         await reloadSession();
         await loadCurrentSlide();
+        void refreshVisionStatus({ silent: true });
+        startVisionStatusPolling();
     } catch (error) {
         hideLoading();
         throw error;
@@ -71,8 +76,15 @@ function bindToolbar() {
             updateToolbarState();
         });
     });
-    document.getElementById("btn-analyze-slide").addEventListener("click", () => analyzeCurrentSlide());
-    document.getElementById("btn-analyze-selection").addEventListener("click", () => analyzeSelectedRegion());
+    document.getElementById("btn-analyze-slide").addEventListener("click", () => {
+        void analyzeCurrentSlide();
+    });
+    document.getElementById("btn-analyze-selection").addEventListener("click", () => {
+        void analyzeSelectedRegion();
+    });
+    document.getElementById("btn-refresh-vision").addEventListener("click", () => {
+        void refreshVisionStatus();
+    });
     document.getElementById("btn-accept-all").addEventListener("click", () => acceptAllCandidates());
     document.getElementById("btn-delete-guide").addEventListener("click", () => tools.deleteSelectedGuide());
     document.getElementById("btn-generate").addEventListener("click", () => generatePpt());
@@ -97,6 +109,25 @@ function bindShortcuts() {
             tools.deleteSelectedGuide();
         }
     });
+}
+
+
+function bindLifecycle() {
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            void refreshVisionStatus({ silent: true });
+        }
+    });
+}
+
+
+function startVisionStatusPolling() {
+    if (visionStatusTimer) clearInterval(visionStatusTimer);
+    visionStatusTimer = setInterval(() => {
+        if (!document.hidden) {
+            void refreshVisionStatus({ silent: true });
+        }
+    }, 60000);
 }
 
 
@@ -271,6 +302,9 @@ async function analyzeCurrentSlide() {
         });
         await reloadSession();
         await loadCurrentSlide();
+    } catch (error) {
+        showToast(error?.message || String(error), "error");
+        await refreshVisionStatus({ silent: true });
     } finally {
         hideLoading();
     }
@@ -293,6 +327,9 @@ async function analyzeSelectedRegion() {
         });
         await reloadSession();
         await loadCurrentSlide();
+    } catch (error) {
+        showToast(error?.message || String(error), "error");
+        await refreshVisionStatus({ silent: true });
     } finally {
         hideLoading();
     }
@@ -343,6 +380,16 @@ const SLIDE_STATUS_LABEL = {
     ready: "준비됨",
 };
 
+const VISION_STATUS_LABEL = {
+    ok: "Vision 정상",
+    missing_api_key: "Vision 키 없음",
+    auth_failed: "Vision 인증 실패",
+    billing_blocked: "Vision 크레딧 부족",
+    rate_limited: "Vision 요청 제한",
+    network_error: "Vision 연결 오류",
+    unknown_error: "Vision 점검 실패",
+};
+
 function localizeJobStatus(value) {
     if (!value) return "-";
     return JOB_STATUS_LABEL[value] || value;
@@ -351,6 +398,76 @@ function localizeJobStatus(value) {
 function localizeSlideStatus(value) {
     if (!value) return "-";
     return SLIDE_STATUS_LABEL[value] || value;
+}
+
+function localizeVisionStatus(value) {
+    if (!value) return "Vision 확인 안 됨";
+    return VISION_STATUS_LABEL[value] || value;
+}
+
+function getVisionTone(snapshot) {
+    if (!snapshot) return "pending";
+    if (snapshot.can_analyze) return "ok";
+    if (["rate_limited", "network_error"].includes(snapshot.status)) return "warn";
+    return "error";
+}
+
+function getVisionDetail(snapshot) {
+    if (!snapshot) return "";
+    return snapshot.detail || snapshot.message || "";
+}
+
+function renderVisionStatus() {
+    const badge = document.getElementById("vision-badge");
+    if (!badge) return;
+    const snapshot = state.visionStatus;
+    badge.textContent = localizeVisionStatus(snapshot?.status);
+    badge.dataset.state = getVisionTone(snapshot);
+    const checkedAt = snapshot?.checked_at
+        ? `확인: ${new Date(snapshot.checked_at).toLocaleString()}`
+        : "";
+    badge.title = [snapshot?.message, snapshot?.detail, checkedAt].filter(Boolean).join("\n");
+}
+
+async function refreshVisionStatus({ silent = false } = {}) {
+    const badge = document.getElementById("vision-badge");
+    const refreshButton = document.getElementById("btn-refresh-vision");
+    if (badge) {
+        badge.textContent = "Vision 확인 중";
+        badge.dataset.state = "pending";
+        badge.title = "Anthropic 진단 요청을 실행하는 중입니다.";
+    }
+    if (refreshButton) {
+        refreshButton.disabled = true;
+    }
+
+    try {
+        state.visionStatus = await ApiClient.getVisionStatus();
+        renderVisionStatus();
+        if (!silent) {
+            if (state.visionStatus.can_analyze) {
+                showToast("Claude Vision이 사용 가능합니다.", "success");
+            } else {
+                showToast(getVisionDetail(state.visionStatus), "error");
+            }
+        }
+    } catch (error) {
+        state.visionStatus = {
+            status: "unknown_error",
+            can_analyze: false,
+            message: "Vision 상태를 확인하지 못했습니다.",
+            detail: error?.message || String(error),
+        };
+        renderVisionStatus();
+        if (!silent) {
+            showToast(state.visionStatus.detail, "error");
+        }
+    } finally {
+        if (refreshButton) {
+            refreshButton.disabled = false;
+        }
+        updateToolbarState();
+    }
 }
 
 function updateStatusBar() {
@@ -369,7 +486,12 @@ function updateToolbarState() {
     const canAnalyzeSelection = selection &&
         selection.layer === "guide" &&
         ["region_box", "highlight"].includes(selection.item.guide_type);
+    const visionTooltip = state.visionStatus && !state.visionStatus.can_analyze
+        ? getVisionDetail(state.visionStatus)
+        : "";
     document.getElementById("btn-analyze-selection").disabled = !canAnalyzeSelection;
+    document.getElementById("btn-analyze-selection").title = visionTooltip;
+    document.getElementById("btn-analyze-slide").title = visionTooltip;
     document.getElementById("btn-delete-guide").disabled = !(selection && selection.layer === "guide");
     document.getElementById("btn-accept-all").disabled = !state.slide?.latest_revision?.candidates?.length;
     document.getElementById("btn-generate").disabled = state.session?.ready_slides !== state.session?.total_slides;
