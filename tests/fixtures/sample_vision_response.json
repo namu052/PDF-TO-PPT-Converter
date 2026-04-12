@@ -1,0 +1,59 @@
+{
+  "background_color_hex": "#FFFFFF",
+  "elements": [
+    {
+      "element_type": "text_box",
+      "bbox": { "x_pct": 5.0, "y_pct": 3.0, "width_pct": 90.0, "height_pct": 12.0 },
+      "paragraphs": [
+        {
+          "runs": [
+            { "text": "인공지능의 미래", "font": { "family": "Google Sans", "size_pt": 32.0, "bold": true, "italic": false, "underline": false, "color_hex": "#1A237E" } }
+          ],
+          "alignment": "center", "bullet": false, "bullet_char": null, "indent_level": 0, "line_spacing": 1.2
+        }
+      ],
+      "shape_kind": null, "fill_color_hex": null, "fill_opacity": 1.0,
+      "border_color_hex": null, "border_width_pt": null,
+      "rotation": 0, "z_order": 2, "opacity": 1.0, "name": "slide_title"
+    },
+    {
+      "element_type": "shape",
+      "bbox": { "x_pct": 8.0, "y_pct": 20.0, "width_pct": 84.0, "height_pct": 55.0 },
+      "paragraphs": [
+        {
+          "runs": [
+            { "text": "AI 기술은 다양한 분야에서 혁신을 이끌고 있습니다.", "font": { "family": "Google Sans", "size_pt": 18.0, "bold": false, "italic": false, "underline": false, "color_hex": "#333333" } }
+          ],
+          "alignment": "left", "bullet": true, "bullet_char": "•", "indent_level": 0, "line_spacing": 1.5
+        },
+        {
+          "runs": [
+            { "text": "자연어 처리 (NLP)", "font": { "family": "Google Sans", "size_pt": 16.0, "bold": true, "italic": false, "underline": false, "color_hex": "#333333" } }
+          ],
+          "alignment": "left", "bullet": true, "bullet_char": "•", "indent_level": 1, "line_spacing": 1.5
+        }
+      ],
+      "shape_kind": "rounded_rectangle",
+      "fill_color_hex": "#E8EAF6", "fill_opacity": 0.9,
+      "border_color_hex": "#3F51B5", "border_width_pt": 1.5,
+      "corner_radius_pct": 8.0,
+      "rotation": 0, "z_order": 1, "opacity": 1.0, "name": "content_box"
+    },
+    {
+      "element_type": "line",
+      "bbox": { "x_pct": 5.0, "y_pct": 17.0, "width_pct": 90.0, "height_pct": 0.5 },
+      "paragraphs": [],
+      "line_color_hex": "#3F51B5", "line_width_pt": 2.0,
+      "line_style": "solid", "start_arrow": "none", "end_arrow": "none",
+      "rotation": 0, "z_order": 1, "opacity": 1.0, "name": "divider_line"
+    },
+    {
+      "element_type": "image",
+      "bbox": { "x_pct": 70.0, "y_pct": 78.0, "width_pct": 25.0, "height_pct": 18.0 },
+      "paragraphs": [],
+      "image_description": "brain-shaped neural network illustration with blue nodes",
+      "image_placeholder_color": "#BBDEFB",
+      "rotation": 0, "z_order": 3, "opacity": 1.0, "name": "ai_illustration"
+    }
+  ]
+}

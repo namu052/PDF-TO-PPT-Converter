@@ -1,0 +1,17 @@
+output/
+.env
+__pycache__/
+*.pyc
+.venv/
+*.pptx
+
+# Claude Code local session data
+.claude/
+
+# Test/coverage artifacts
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Local sample PDFs (top-level only)
+/*.pdf

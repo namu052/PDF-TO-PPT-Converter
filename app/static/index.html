@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수동 우선 PDF → PPT</title>
+    <link rel="stylesheet" href="/static/css/common.css?v=20260411f">
+    <link rel="stylesheet" href="/static/css/index.css?v=20260411f">
+</head>
+<body>
+    <div class="upload-container">
+        <h1>수동 우선 PDF → PPT</h1>
+        <p class="subtitle">PDF를 업로드하고, 각 슬라이드 위에 가이드 오버레이를 추가한 뒤, 준비가 되면 Claude Vision을 실행하고 원본 충실도를 중시한 PPTX를 생성합니다.</p>
+
+        <div id="upload-area" class="upload-zone">
+            <div class="upload-icon">PDF</div>
+            <h2>PDF를 이곳에 끌어다 놓거나 파일을 선택하세요</h2>
+            <button id="btn-browse" class="btn-primary">PDF 선택</button>
+            <input type="file" id="file-input" accept=".pdf" hidden>
+            <p class="upload-hint">먼저 슬라이드를 이미지로 변환합니다. 가이드를 추가하고 분석을 요청하기 전까지는 자동 분석이 실행되지 않습니다.</p>
+        </div>
+
+        <div id="progress-area" class="hidden">
+            <h2 id="progress-title">슬라이드 이미지를 준비하는 중...</h2>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <p id="progress-message">대기 중...</p>
+            <div id="progress-detail" class="text-muted"></div>
+        </div>
+    </div>
+    <script src="/static/js/api-client.js?v=20260411f"></script>
+    <script src="/static/js/upload.js?v=20260411f"></script>
+</body>
+</html>

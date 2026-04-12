@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수동 우선 PDF 편집기</title>
+    <link rel="stylesheet" href="/static/css/common.css?v=20260411f">
+    <link rel="stylesheet" href="/static/css/editor.css?v=20260411f">
+</head>
+<body>
+    <div class="editor-layout">
+        <header class="toolbar">
+            <div class="toolbar-left">
+                <span class="brand">수동 우선 PDF → PPT</span>
+                <span id="mode-badge" class="mode-badge">가이드 편집</span>
+            </div>
+            <div class="tool-strip">
+                <button type="button" class="tool-btn active" data-tool="select">선택</button>
+                <button type="button" class="tool-btn" data-tool="rect">사각형</button>
+                <button type="button" class="tool-btn" data-tool="ellipse">타원</button>
+                <button type="button" class="tool-btn" data-tool="line">직선</button>
+                <button type="button" class="tool-btn" data-tool="arrow">화살표</button>
+                <button type="button" class="tool-btn" data-tool="text_note">메모</button>
+                <button type="button" class="tool-btn" data-tool="region_box">영역</button>
+                <button type="button" class="tool-btn" data-tool="highlight">강조</button>
+            </div>
+            <div class="toolbar-right">
+                <button type="button" class="tool-btn" id="btn-delete-guide">가이드 삭제</button>
+                <button type="button" class="tool-btn" id="btn-analyze-selection">영역 분석</button>
+                <button type="button" class="tool-btn" id="btn-analyze-slide">슬라이드 분석</button>
+                <button type="button" class="tool-btn" id="btn-accept-all">모두 수락</button>
+                <button type="button" class="btn-primary" id="btn-generate">PPTX 생성</button>
+            </div>
+        </header>
+
+        <aside class="slide-nav" id="slide-nav"></aside>
+
+        <main class="canvas-area">
+            <div class="loading-overlay hidden" id="canvas-loading">
+                <div class="spinner"></div>
+                <p id="loading-message">로딩 중...</p>
+            </div>
+            <div class="canvas-container" id="canvas-container">
+                <img class="slide-image" id="slide-image" alt="슬라이드 원본" draggable="false">
+                <svg class="svg-layer guide-layer" id="guide-layer"></svg>
+                <svg class="svg-layer candidate-layer" id="candidate-layer"></svg>
+                <svg class="svg-layer final-layer" id="final-layer"></svg>
+                <svg class="svg-layer preview-layer" id="preview-layer"></svg>
+                <div class="interaction-layer" id="interaction-layer"></div>
+            </div>
+        </main>
+
+        <aside class="property-panel" id="property-panel"></aside>
+
+        <footer class="status-bar">
+            <span id="status-left">슬라이드 -/-</span>
+            <span id="status-mid">작업 -</span>
+            <span id="status-right">가이드 0개 / 확정 0개</span>
+        </footer>
+    </div>
+
+    <script src="/static/js/api-client.js?v=20260411f"></script>
+    <script src="/static/js/canvas-renderer.js?v=20260411f"></script>
+    <script src="/static/js/element-tools.js?v=20260411f"></script>
+    <script src="/static/js/property-panel.js?v=20260411f"></script>
+    <script src="/static/js/slide-nav.js?v=20260411f"></script>
+    <script src="/static/js/editor-app.js?v=20260411f"></script>
+</body>
+</html>
